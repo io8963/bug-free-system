@@ -6,13 +6,11 @@
     --surface-color-light: #fff; 
     --border-color-light: #ddd; 
 
-    /* 默认使用浅色模式 */
     --text-color: var(--text-color-light);
     --bg-color: var(--bg-color-light);
     --surface-color: var(--surface-color-light);
     --border-color: var(--border-color-light);
     
-    /* 统一所有元素的圆角大小，PC和移动端都使用较大圆角 */
     --search-radius: 40px; 
 }
 
@@ -49,16 +47,15 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
-/* --- 搜索容器 --- */
+/* --- 搜索容器 & 表单 (统一外观) --- */
 .search-container {
     width: 90%;
     max-width: 800px; 
     padding: 20px;
 }
 
-/* --- 搜索表单 (统一外观) --- */
 .search-form {
-    display: flex; /* PC默认使用Flex布局 */
+    display: flex; 
     background-color: var(--surface-color);
     border: 1px solid var(--border-color);
     border-radius: var(--search-radius); 
@@ -72,21 +69,24 @@ body {
     box-shadow: 0 4px 16px rgba(26, 121, 127, 0.3); 
 }
 
-/* --- 搜索引擎选择 (PC 样式) --- */
+/* --- 搜索引擎选择组 (PC 样式) --- */
 .engine-select-group {
     display: flex;
     align-items: center;
-    padding-left: 15px;
     border-right: 1px solid var(--border-color);
-    /* 确保 PC 端 select 始终可见 */
     position: relative;
+    /* PC 端使用 Flex 布局排列 Logo 文本和下拉箭头 */
+    padding-left: 15px;
 }
 
-.icon-search {
+/* PC 端显示的 Logo/文本 */
+.logo-display {
     color: var(--text-color);
     margin-right: 5px;
+    font-size: 16px; /* 默认显示文本 */
 }
 
+/* 隐藏 `<select>` 元素的默认外观 */
 .engine-select {
     border: none;
     background: transparent;
@@ -98,7 +98,7 @@ body {
     outline: none;
 }
 
-/* --- 搜索输入框 (PC 样式) --- */
+/* --- 搜索输入框 (统一外观) --- */
 .search-input {
     flex-grow: 1; 
     border: none;
@@ -140,7 +140,7 @@ body {
 
 
 /* ------------------------------------------------------------------ */
-/* --- 移动端适配（屏幕宽度 <= 768px）：使用 Logo 替代文字 --- */
+/* --- 移动端适配（屏幕宽度 <= 768px）：Logo 替换和缩减 --- */
 /* ------------------------------------------------------------------ */
 @media (max-width: 768px) {
     .search-form {
@@ -160,25 +160,27 @@ body {
     .engine-select-group {
         grid-area: select;
         border-radius: var(--search-radius) 0 0 var(--search-radius);
-        padding-left: 5px; /* 进一步缩减左侧内边距 */
+        padding-left: 0; /* 移除左侧 padding */
         
-        /* 移动端 Logo 替代的核心样式 */
-        position: relative;
         display: flex;
         justify-content: center; 
         align-items: center;
         width: 45px; /* 固定宽度，非常紧凑 */
     }
     
-    /* 动态生成的 Logo 图标样式 */
-    .engine-select-group .logo-icon {
-        font-size: 20px; /* Logo 图标大小 */
+    /* 移动端显示的 Logo 图标 */
+    .logo-display {
+        font-family: 'Material Symbols Outlined'; /* 确保字体是图标字体 */
+        font-size: 20px; 
         color: var(--text-color);
-        position: absolute;
-        pointer-events: none; /* 确保点击能穿透到 select */
+        /* 定位在容器中央 */
+        position: absolute; 
         z-index: 2;
+        margin: 0;
+        /* 确保它是图标而不是文本 */
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; 
     }
-
+    
     /* 搜索引擎选择器 (Select Dropdown) 样式调整 */
     .engine-select {
         opacity: 0; /* 关键：让 select 元素完全透明并覆盖整个区域 */
@@ -202,7 +204,7 @@ body {
     /* 搜索按钮（只显示图标） */
     .search-button {
         grid-area: button;
-        border-left: 1px solid var(--border-color); /* 在移动端为按钮和输入框增加分隔线 */
+        border-left: 1px solid var(--border-color); 
         font-size: 0; 
         padding: 0; 
         width: 55px; 
@@ -217,9 +219,5 @@ body {
         font-size: 20px;
         margin: 0;
         color: white;
-    }
-    
-    .search-button:hover {
-        background-color: var(--primary-color);
     }
 }
