@@ -6,11 +6,13 @@
     --surface-color-light: #fff; 
     --border-color-light: #ddd; 
 
+    /* 默认使用浅色模式 */
     --text-color: var(--text-color-light);
     --bg-color: var(--bg-color-light);
     --surface-color: var(--surface-color-light);
     --border-color: var(--border-color-light);
     
+    /* 统一所有元素的圆角大小 */
     --search-radius: 40px; 
 }
 
@@ -69,24 +71,23 @@ body {
     box-shadow: 0 4px 16px rgba(26, 121, 127, 0.3); 
 }
 
-/* --- 搜索引擎选择组 (PC 样式) --- */
+/* --- 搜索引擎选择 (PC 样式) --- */
 .engine-select-group {
     display: flex;
     align-items: center;
     border-right: 1px solid var(--border-color);
-    position: relative;
-    /* PC 端使用 Flex 布局排列 Logo 文本和下拉箭头 */
-    padding-left: 15px;
+    position: relative; /* 用于定位 select */
+    padding-left: 15px; /* PC 端左侧留白 */
 }
 
-/* PC 端显示的 Logo/文本 */
-.logo-display {
+/* PC 端显示的设置图标 */
+.setting-icon {
     color: var(--text-color);
     margin-right: 5px;
-    font-size: 16px; /* 默认显示文本 */
+    font-size: 20px;
 }
 
-/* 隐藏 `<select>` 元素的默认外观 */
+/* select 元素：PC 端显示文字 */
 .engine-select {
     border: none;
     background: transparent;
@@ -96,6 +97,7 @@ body {
     cursor: pointer;
     appearance: none; 
     outline: none;
+    opacity: 1; 
 }
 
 /* --- 搜索输入框 (统一外观) --- */
@@ -140,7 +142,7 @@ body {
 
 
 /* ------------------------------------------------------------------ */
-/* --- 移动端适配（屏幕宽度 <= 768px）：Logo 替换和缩减 --- */
+/* --- 移动端适配（屏幕宽度 <= 768px）：固定设置图标 + 缩减 --- */
 /* ------------------------------------------------------------------ */
 @media (max-width: 768px) {
     .search-form {
@@ -156,7 +158,7 @@ body {
         border: none !important; 
     }
 
-    /* 搜索引擎选择区域 (Select Group) 样式调整为 Logo 容器 */
+    /* 搜索引擎选择区域 (Select Group) 样式调整为设置图标容器 */
     .engine-select-group {
         grid-area: select;
         border-radius: var(--search-radius) 0 0 var(--search-radius);
@@ -168,25 +170,19 @@ body {
         width: 45px; /* 固定宽度，非常紧凑 */
     }
     
-    /* 移动端显示的 Logo 图标 */
-    .logo-display {
-        font-family: 'Material Symbols Outlined'; /* 确保字体是图标字体 */
+    /* 移动端设置图标 */
+    .setting-icon {
         font-size: 20px; 
-        color: var(--text-color);
-        /* 定位在容器中央 */
-        position: absolute; 
+        position: absolute; /* 定位在容器中央 */
         z-index: 2;
         margin: 0;
-        /* 确保它是图标而不是文本 */
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; 
     }
     
     /* 搜索引擎选择器 (Select Dropdown) 样式调整 */
     .engine-select {
         opacity: 0; /* 关键：让 select 元素完全透明并覆盖整个区域 */
         position: relative;
-        z-index: 3; /* 确保可点击 */
-        cursor: pointer;
+        z-index: 3; /* 确保可点击性 */
         
         width: 100%;
         height: 100%;
@@ -197,7 +193,7 @@ body {
     /* 输入框调整 */
     .search-input {
         grid-area: input;
-        padding: 12px 10px; /* 调整垂直内边距 */
+        padding: 12px 10px; 
         font-size: 16px;
     }
 
