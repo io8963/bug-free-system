@@ -49,16 +49,16 @@ body {
 /* --- 搜索容器 --- */
 .search-container {
     width: 90%;
-    max-width: 800px; /* PC端最大宽度限制 */
+    max-width: 800px; 
     padding: 20px;
 }
 
-/* --- 搜索表单 --- */
+/* --- 搜索表单 (PC 样式) --- */
 .search-form {
     display: flex;
     background-color: var(--surface-color);
     border: 1px solid var(--border-color);
-    border-radius: 40px; /* 圆角设计 */
+    border-radius: 40px; 
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s, border-color 0.3s;
     overflow: hidden; 
@@ -66,7 +66,7 @@ body {
 
 .search-form:focus-within {
     border-color: var(--primary-color);
-    box-shadow: 0 4px 16px rgba(26, 121, 127, 0.3); /* 主题色高亮阴影 */
+    box-shadow: 0 4px 16px rgba(26, 121, 127, 0.3); 
 }
 
 /* --- 搜索引擎选择 (PC 样式) --- */
@@ -95,7 +95,7 @@ body {
 
 /* --- 搜索输入框 (PC 样式) --- */
 .search-input {
-    flex-grow: 1; /* 占据剩余空间 */
+    flex-grow: 1; 
     border: none;
     padding: 15px 20px;
     font-size: 18px;
@@ -125,7 +125,7 @@ body {
 }
 
 .search-button:hover {
-    background-color: #156268; /* 稍深的 hover 颜色 */
+    background-color: #156268; 
 }
 
 .search-button span {
@@ -135,60 +135,75 @@ body {
 
 
 /* ------------------------------------------------------------------ */
-/* --- 响应式设计（Mobile/iPad 适配: 屏幕宽度 <= 768px） --- */
+/* --- 响应式设计（Mobile/iPad 优化: 屏幕宽度 <= 768px） --- */
 /* ------------------------------------------------------------------ */
 @media (max-width: 768px) {
     .search-form {
-        /* 使用 Grid 布局在小屏幕上进行更细致的控制 */
+        /* 移动端改为一行布局：[select] [input] [button] */
         display: grid;
         grid-template-areas: 
-            "select select"
-            "input button";
-        grid-template-columns: 1fr auto; /* 输入框占据大部分宽度，按钮自适应 */
-        border-radius: 12px; /* 移动端圆角小一点 */
+            "select input button"; 
+        grid-template-columns: auto 1fr auto; 
+        border-radius: 12px; 
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        /* 边框和背景由内部元素承担，使整体更紧凑 */
+        border: none; 
+        background-color: var(--surface-color);
+    }
+    
+    /* 确保内部元素无默认边框 */
+    .engine-select-group,
+    .search-input,
+    .search-button {
+        border: none !important; 
     }
 
     .engine-select-group {
         grid-area: select;
-        width: 100%;
-        border-right: none; /* 移除右侧边框 */
-        border-bottom: 1px solid var(--border-color); /* 增加底部边框 */
-        padding: 10px 15px;
+        /* 仅在右侧保留分隔线，与输入框分离 */
+        border-right: 1px solid var(--border-color) !important; 
+        padding-left: 15px;
+        height: 100%; 
+        width: auto; 
+    }
+
+    .icon-search {
+        /* 移动端隐藏图标，使选择框更简洁 */
+        display: none; 
     }
 
     .engine-select {
-        font-size: 14px;
-        padding: 5px 0;
+        font-size: 16px; 
+        padding: 15px 10px 15px 0; /* 调整内边距，使其与输入框高度匹配 */
     }
 
     .search-input {
         grid-area: input;
-        padding: 15px 15px;
+        padding: 15px 10px; 
         font-size: 16px;
-        border-right: none;
     }
 
     .search-button {
         grid-area: button;
-        /* 隐藏文字，只显示图标 */
-        font-size: 0; 
+        /* 搜索按钮在左侧增加分隔线 */
+        border-left: 1px solid var(--border-color) !important;
+        font-size: 0; /* 隐藏文字 */
         padding: 0; 
-        width: 55px; /* 固定宽度，确保是方块 */
-        height: 100%; /* 确保高度填充 grid 区域 */
+        width: 55px; 
+        height: 100%; 
         display: flex;
         justify-content: center;
         align-items: center;
+        background-color: var(--primary-color); /* 覆盖表单背景色 */
     }
     
-    /* 确保图标可见且居中 */
     .search-button span {
         font-size: 20px;
+        color: white; /* 确保图标颜色正确 */
         margin: 0;
     }
     
     .search-button:hover {
-        /* 移动端 hover 效果不明显，保持原色 */
         background-color: var(--primary-color);
     }
 }
