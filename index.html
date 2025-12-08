@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简约搜索主页</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+<body>
+    <main class="search-container">
+        <form id="search-form" class="search-form">
+            <div class="engine-select-group">
+                <span class="material-symbols-outlined icon-search">search</span>
+                <select id="engine-select" class="engine-select">
+                    <option value="https://www.bing.com/search?q=" selected>Bing</option>
+                    <option value="https://www.google.com/search?q=">Google</option>
+                    <option value="https://www.baidu.com/s?wd=">Baidu</option>
+                    </select>
+            </div>
+            
+            <input 
+                type="text" 
+                id="search-input" 
+                class="search-input" 
+                placeholder="输入你想搜索的内容..." 
+                required
+            >
+            
+            <button type="submit" class="search-button">
+                搜索
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
+        </form>
+    </main>
+    
+    <script src="script.js"></script>
+</body>
+</html>
