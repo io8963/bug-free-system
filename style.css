@@ -6,12 +6,13 @@
 
     --text-color-light: #333; 
     --surface-color-light: rgba(255, 255, 255, 0.75); 
-    --border-color-light: rgba(255, 255, 255, 0.6);   
+    --border-color-light: rgba(0, 0, 0, 0.08);   
     --hover-color-light: rgba(0, 0, 0, 0.05);
     --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.10);
     
     --placeholder-opacity: 0.5;
-    --hint-opacity: 0.3;
+    /* 提高提示可见度 */
+    --hint-opacity: 0.8;
     
     --text-color: var(--text-color-light);
     --surface-color: var(--surface-color-light);
@@ -33,6 +34,7 @@
         --hover-color: rgba(255, 255, 255, 0.1);
         --box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         --backdrop-blur: 30px;   
+        --hint-opacity: 0.5;
     }
 }
 
@@ -62,7 +64,7 @@ body::before {
 
 .search-form {
     display: flex; 
-    align-items: center; /* 确保所有子元素垂直居中 */
+    align-items: center;
     background-color: var(--surface-color);
     backdrop-filter: blur(var(--backdrop-blur));
     -webkit-backdrop-filter: blur(var(--backdrop-blur));
@@ -71,7 +73,7 @@ body::before {
     box-shadow: var(--box-shadow);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;
-    height: 64px; /* 固定高度有助于精确对齐 */
+    height: 64px;
 }
 
 .search-form:focus-within {
@@ -80,7 +82,6 @@ body::before {
     box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
 }
 
-/* 禁用原生清除按钮 */
 input[type="search"]::-webkit-search-decoration,
 input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-results-button,
@@ -164,61 +165,81 @@ input[type="search"]::-webkit-search-results-decoration {
 
 .search-input {
     flex-grow: 1; border: none; padding: 0 20px;
-    height: 100%; /* 填满父容器 */
+    height: 100%;
     font-size: 18px; background: transparent; color: var(--text-color);
     outline: none; caret-color: var(--primary-color);
 }
 .search-input::placeholder { color: var(--text-color); opacity: var(--placeholder-opacity); }
 
+/* --- 核心优化：彻底解决快捷键“扁平感” --- */
 .shortcut-hint {
-    font-size: 12px; border: 1px solid var(--border-color);
-    border-radius: 6px; padding: 2px 7px; margin-right: 15px;
-    opacity: var(--hint-opacity); font-family: monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* 强制正方形感 */
+    min-width: 24px;
+    height: 24px;
+    
+    font-size: 14px; 
+    font-weight: 600;
+    font-family: -apple-system, system-ui, sans-serif; /* 使用非等宽字体让斜杠更挺拔 */
+    
+    color: var(--text-color);
+    background-color: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom-width: 2px; /* 模拟按键厚度 */
+    border-radius: 6px; 
+    
+    margin-right: 15px;
+    opacity: var(--hint-opacity); 
     flex-shrink: 0;
-    transition: opacity 0.2s ease;
+    user-select: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
 }
-.search-input:not(:placeholder-shown) ~ .shortcut-hint { opacity: 0; pointer-events: none; }
 
-/* --- 核心优化：清除按钮几何居中修复 --- */
+@media (prefers-color-scheme: dark) {
+    .shortcut-hint { 
+        background-color: rgba(255, 255, 255, 0.1); 
+        border-color: rgba(255, 255, 255, 0.1);
+        border-bottom-color: rgba(255, 255, 255, 0.2);
+    }
+}
+
+.search-input:not(:placeholder-shown) ~ .shortcut-hint { 
+    opacity: 0; 
+    transform: scale(0.7); 
+    pointer-events: none; 
+}
+
 .clear-btn {
     display: flex; 
     align-items: center; 
     justify-content: center;
     color: var(--text-color);
     cursor: pointer; 
-    font-size: 22px; /* 适当增大图标以匹配视觉权重 */
-    line-height: 1;  /* 强制图标不产生额外行高 */
+    font-size: 22px; 
+    line-height: 1;  
     border-radius: 50%;
     flex-shrink: 0;
     user-select: none;
     overflow: hidden;
-    
-    /* 初始隐藏状态 */
     opacity: 0;
     transform: scale(0.6);
     width: 0;
-    height: 36px; /* 显式高度，确保 hover 圆圈是圆的 */
+    height: 36px; 
     margin-right: 0;
     pointer-events: none;
-    
-    transition: 
-        opacity 0.2s ease,
-        transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-        width 0.2s ease,
-        margin-right 0.2s ease,
-        background-color 0.2s ease;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.2s ease, margin-right 0.2s ease, background-color 0.2s ease;
 }
 
-/* 修复 Material Symbols 的偏移 */
-.clear-btn span {
-    display: block;
-    line-height: 1;
-}
+.clear-btn span { display: block; line-height: 1; }
 
 .clear-btn.visible {
     opacity: 0.4;
     transform: scale(1);
-    width: 36px; /* 显式宽度 */
+    width: 36px; 
     margin-right: 10px;
     pointer-events: auto;
 }
@@ -233,7 +254,7 @@ input[type="search"]::-webkit-search-results-decoration {
     display: flex; align-items: center; gap: 8px;
     background-color: var(--primary-color);
     color: var(--btn-text-color); border: none;
-    height: 52px; /* 固定高度，略小于搜索框 */
+    height: 52px; 
     padding: 0 28px; 
     margin: 6px;
     font-size: 17px; font-weight: 600; cursor: pointer;
