@@ -11,7 +11,6 @@
     --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.10);
     
     --placeholder-opacity: 0.5;
-    /* 提高提示可见度 */
     --hint-opacity: 0.8;
     
     --text-color: var(--text-color-light);
@@ -74,6 +73,8 @@ body::before {
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;
     height: 64px;
+    /* 核心修改：确保容器右侧不留间隙 */
+    padding-right: 0; 
 }
 
 .search-form:focus-within {
@@ -171,26 +172,20 @@ input[type="search"]::-webkit-search-results-decoration {
 }
 .search-input::placeholder { color: var(--text-color); opacity: var(--placeholder-opacity); }
 
-/* --- 核心优化：彻底解决快捷键“扁平感” --- */
 .shortcut-hint {
     display: flex;
     align-items: center;
     justify-content: center;
-    
-    /* 强制正方形感 */
     min-width: 24px;
     height: 24px;
-    
     font-size: 14px; 
     font-weight: 600;
-    font-family: -apple-system, system-ui, sans-serif; /* 使用非等宽字体让斜杠更挺拔 */
-    
+    font-family: -apple-system, system-ui, sans-serif;
     color: var(--text-color);
     background-color: rgba(0, 0, 0, 0.04);
     border: 1px solid rgba(0, 0, 0, 0.1);
-    border-bottom-width: 2px; /* 模拟按键厚度 */
+    border-bottom-width: 2px; 
     border-radius: 6px; 
-    
     margin-right: 15px;
     opacity: var(--hint-opacity); 
     flex-shrink: 0;
@@ -250,6 +245,7 @@ input[type="search"]::-webkit-search-results-decoration {
     background-color: var(--hover-color); 
 }
 
+/* --- 核心优化：搜索按钮覆盖逻辑 --- */
 .search-button {
     display: flex;
     align-items: center;
@@ -257,14 +253,20 @@ input[type="search"]::-webkit-search-results-decoration {
     background-color: var(--primary-color);
     color: white;
     border: none;
-    padding: 15px 25px; 
+    padding: 0 25px; 
     font-size: 18px;
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
+    
+    /* 使用负边距和高度微调，完全覆盖父容器 1px 边框带来的重影 */
+    height: calc(100% + 2px); 
+    margin: -1px -1px -1px 0;
     border-radius: 0 var(--search-radius) var(--search-radius) 0;
+    
     flex-shrink: 0;
     gap: 6px; 
+    z-index: 1; /* 确保它在容器边框上方 */
 }
 
 .search-button:hover {
@@ -287,7 +289,17 @@ input[type="search"]::-webkit-search-results-decoration {
     #current-engine-name, .button-text { display: none; }
     .engine-select-wrapper { border-right: none; width: 50px; }
     .current-engine { padding: 0 0 0 15px; }
-    .search-button { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; }
+    
+    /* 移动端优化：让按钮保持圆形并稍微内收，避免贴边 */
+    .search-button { 
+        width: 44px; 
+        height: 44px; 
+        padding: 0; 
+        justify-content: center; 
+        border-radius: 50%; 
+        margin: 0 6px 0 0; /* 移动端改为间距模式，不强制覆盖边框 */
+        align-self: center;
+    }
     .shortcut-hint { display: none; }
     .clear-btn.visible { margin-right: 5px; }
 }
