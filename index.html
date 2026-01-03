@@ -9,26 +9,38 @@
 </head>
 <body>
     <main class="search-container">
-        <!-- 添加 role="search" 提升语义化 -->
         <form id="search-form" class="search-form" role="search">
             
             <!-- 搜索引擎选择器 -->
             <div class="engine-select-wrapper" id="engine-trigger" role="button" aria-haspopup="true" aria-expanded="false" aria-label="切换搜索引擎">
-                <!-- 显示区域 (纯文字 + 箭头) -->
                 <div class="current-engine">
                     <span id="current-engine-name">Bing</span>
                     <span class="material-symbols-outlined arrow-icon">expand_more</span>
                 </div>
 
-                <!-- 下拉菜单 (纯文字) -->
+                <!-- 下拉菜单：增加次级域名描述 -->
                 <ul id="engine-menu" class="engine-menu" role="menu">
-                    <li role="menuitem" data-name="Bing" data-url="https://www.bing.com/search?q=" class="selected">Bing</li>
-                    <li role="menuitem" data-name="Google" data-url="https://www.google.com/search?q=">Google</li>
-                    <li role="menuitem" data-name="Baidu" data-url="https://www.baidu.com/s?wd=">Baidu</li>
+                    <li role="menuitem" data-name="Bing" data-url="https://www.bing.com/search?q=" class="selected">
+                        <div class="engine-info">
+                            <span class="engine-main">Bing</span>
+                            <span class="engine-desc">bing.com</span>
+                        </div>
+                    </li>
+                    <li role="menuitem" data-name="Google" data-url="https://www.google.com/search?q=">
+                        <div class="engine-info">
+                            <span class="engine-main">Google</span>
+                            <span class="engine-desc">google.com</span>
+                        </div>
+                    </li>
+                    <li role="menuitem" data-name="Baidu" data-url="https://www.baidu.com/s?wd=">
+                        <div class="engine-info">
+                            <span class="engine-main">Baidu</span>
+                            <span class="engine-desc">baidu.com</span>
+                        </div>
+                    </li>
                 </ul>
             </div>
             
-            <!-- 输入框 (键盘适配 + 自动聚焦) -->
             <input 
                 type="search" 
                 id="search-input" 
@@ -38,19 +50,15 @@
                 inputmode="search"
                 enterkeyhint="search"
                 required
-                aria-label="输入搜索关键词"
                 autofocus
             >
 
-            <!-- 快捷键提示 -->
             <div class="shortcut-hint" aria-hidden="true">/</div>
 
-            <!-- 清除按钮 (可聚焦) -->
             <span id="clear-btn" class="material-symbols-outlined clear-btn" style="display: none;" role="button" aria-label="清除输入" tabindex="0">cancel</span>
             
-            <!-- 搜索按钮 -->
             <button type="submit" class="search-button" aria-label="执行搜索">
-                搜索
+                <span class="button-text">搜索</span>
                 <span class="material-symbols-outlined">search</span>
             </button>
         </form>
