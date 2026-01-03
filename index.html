@@ -12,10 +12,14 @@
         <form id="search-form" class="search-form" role="search">
             
             <div class="engine-select-wrapper" id="engine-trigger" role="button" aria-haspopup="true" aria-expanded="false" aria-label="切换搜索引擎">
-                <div class="current-engine">
+                <!-- 默认搜索引擎显示 -->
+                <div class="current-engine" id="current-engine-ui">
                     <span id="current-engine-name">Bing</span>
                     <span class="material-symbols-outlined arrow-icon">expand_more</span>
                 </div>
+
+                <!-- 直达模式标签显示 -->
+                <div id="direct-badge" class="direct-badge">GitHub</div>
 
                 <ul id="engine-menu" class="engine-menu" role="menu">
                     <li role="menuitem" data-name="Bing" data-url="https://www.bing.com/search?q=" class="selected">

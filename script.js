@@ -6,19 +6,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const engineTrigger = document.getElementById('engine-trigger');
     const engineMenu = document.getElementById('engine-menu');
     const engineNameDisplay = document.getElementById('current-engine-name');
+    const directBadge = document.getElementById('direct-badge');
     const menuItems = engineMenu.querySelectorAll('li');
 
     let currentSearchUrl = "https://www.bing.com/search?q=";
     let activeIndex = -1; 
 
-    // --- 1. 直达功能配置 ---
+    // --- 1. 直达功能配置 (包含显示名称) ---
     const directShortcuts = {
-        'gh': 'https://github.com/search?q=',
-        'yt': 'https://www.youtube.com/results?search_query=',
-        'bili': 'https://search.bilibili.com/all?keyword=',
-        'wiki': 'https://zh.wikipedia.org/wiki/',
-        'z': 'https://www.zhihu.com/search?q=',
-        'db': 'https://www.douban.com/search?q='
+        'gh': { name: 'GitHub', url: 'https://github.com/search?q=' },
+        'yt': { name: 'YouTube', url: 'https://www.youtube.com/results?search_query=' },
+        'bili': { name: 'Bilibili', url: 'https://search.bilibili.com/all?keyword=' },
+        'wiki': { name: '维基百科', url: 'https://zh.wikipedia.org/wiki/' },
+        'z': { name: '知乎', url: 'https://www.zhihu.com/search?q=' },
+        'db': { name: '豆瓣', url: 'https://www.douban.com/search?q=' }
     };
 
     // --- 2. 初始化引擎状态 ---
@@ -48,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 3. 菜单开关逻辑 ---
     function toggleMenu(show) {
+        // 如果处于直达模式，点击左侧不触发菜单
+        if (form.classList.contains('direct-mode') && show) return;
+
         if (show) {
             engineMenu.classList.add('active');
             engineTrigger.classList.add('is-open'); 
@@ -111,13 +115,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('click', () => toggleMenu(false));
 
-    // --- 5. 输入框监听 (清除按钮 & 直达模式视觉反馈) ---
+    // --- 5. 输入框监听 (核心直达模式识别逻辑) ---
     const checkDirectMode = (val) => {
         const query = val.trim();
-        const parts = query.split(' ');
+        const parts = query.split(/\s+/); // 使用正则匹配空格
         const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
         
-        if (urlPattern.test(query) || (parts.length > 1 && directShortcuts[parts[0].toLowerCase()])) {
+        let isDirect = false;
+        let label = "跳转";
+
+        // 识别 URL
+        if (urlPattern.test(query)) {
+            isDirect = true;
+            label = "跳转";
+        } 
+        // 识别快捷键 (需空格触发，如 "gh ")
+        else if (parts.length > 1) {
+            const prefix = parts[0].toLowerCase();
+            if (directShortcuts[prefix]) {
+                isDirect = true;
+                label = directShortcuts[prefix].name;
+            }
+        }
+
+        if (isDirect) {
+            directBadge.textContent = label;
             form.classList.add('direct-mode');
         } else {
             form.classList.remove('direct-mode');
@@ -141,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     toggleClearBtn();
 
-    // --- 6. 提交搜索逻辑 (核心直达逻辑) ---
+    // --- 6. 提交搜索逻辑 ---
     form.addEventListener('submit', (e) => {
         e.preventDefault(); 
         const query = input.value.trim();
@@ -152,26 +174,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let targetUrl = "";
 
-        // A. 判定是否为纯网址直达
         const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
         if (urlPattern.test(query)) {
             targetUrl = query.startsWith('http') ? query : `https://${query}`;
         } 
         else {
-            // B. 判定是否为快捷键直达 (例如 "gh react")
-            const parts = query.split(' ');
+            const parts = query.split(/\s+/);
             const prefix = parts[0].toLowerCase();
             if (directShortcuts[prefix] && parts.length > 1) {
                 const keyword = query.substring(parts[0].length).trim();
-                targetUrl = directShortcuts[prefix] + encodeURIComponent(keyword);
+                targetUrl = directShortcuts[prefix].url + encodeURIComponent(keyword);
             } 
             else {
-                // C. 普通搜索
                 targetUrl = currentSearchUrl + encodeURIComponent(query);
             }
         }
 
-        // 执行跳转
         setTimeout(() => {
             window.open(targetUrl, '_blank');
             searchBtn.classList.remove('is-loading');
