@@ -61,7 +61,8 @@ body::before {
 .search-container { width: 95%; max-width: 800px; padding: 20px; }
 
 .search-form {
-    display: flex; align-items: center;
+    display: flex; 
+    align-items: center; /* 确保所有子元素垂直居中 */
     background-color: var(--surface-color);
     backdrop-filter: blur(var(--backdrop-blur));
     -webkit-backdrop-filter: blur(var(--backdrop-blur));
@@ -70,6 +71,7 @@ body::before {
     box-shadow: var(--box-shadow);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;
+    height: 64px; /* 固定高度有助于精确对齐 */
 }
 
 .search-form:focus-within {
@@ -78,14 +80,23 @@ body::before {
     box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
 }
 
+/* 禁用原生清除按钮 */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+    -webkit-appearance: none; display: none;
+}
+
 .engine-select-wrapper {
     position: relative; height: 100%; cursor: pointer;
     border-right: 1px solid var(--border-color);
+    display: flex; align-items: center;
 }
 
 .current-engine {
     display: flex; align-items: center;
-    padding: 15px 15px 15px 25px;
+    padding: 0 15px 0 25px;
     gap: 8px; font-size: 16px; font-weight: 500;
 }
 
@@ -96,7 +107,6 @@ body::before {
 
 .engine-select-wrapper.is-open .arrow-icon { transform: rotate(180deg); color: var(--primary-color); opacity: 1; }
 
-/* --- 下拉菜单 UI 优化 --- */
 .engine-menu {
     display: none; position: absolute; 
     top: calc(100% + 12px); left: 0;
@@ -125,7 +135,6 @@ body::before {
     margin-bottom: 2px;
 }
 
-/* 菜单项滑入动画 */
 .engine-menu.active li {
     animation: itemSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -143,7 +152,6 @@ body::before {
     transform: translateX(4px);
 }
 
-/* 选中项指示条 */
 .engine-menu li.selected::before {
     content: ""; position: absolute; left: 6px;
     width: 4px; height: 16px; background-color: var(--primary-color);
@@ -154,9 +162,9 @@ body::before {
 .engine-main { font-size: 15px; font-weight: 600; color: var(--text-color); }
 .engine-desc { font-size: 11px; opacity: 0.5; font-family: monospace; }
 
-/* --- 搜索框与其他 --- */
 .search-input {
-    flex-grow: 1; border: none; padding: 15px 10px 15px 20px;
+    flex-grow: 1; border: none; padding: 0 20px;
+    height: 100%; /* 填满父容器 */
     font-size: 18px; background: transparent; color: var(--text-color);
     outline: none; caret-color: var(--primary-color);
 }
@@ -166,35 +174,85 @@ body::before {
     font-size: 12px; border: 1px solid var(--border-color);
     border-radius: 6px; padding: 2px 7px; margin-right: 15px;
     opacity: var(--hint-opacity); font-family: monospace;
+    flex-shrink: 0;
+    transition: opacity 0.2s ease;
 }
-.search-input:not(:placeholder-shown) ~ .shortcut-hint { display: none; }
+.search-input:not(:placeholder-shown) ~ .shortcut-hint { opacity: 0; pointer-events: none; }
 
+/* --- 核心优化：清除按钮几何居中修复 --- */
 .clear-btn {
-    opacity: 0.4; cursor: pointer; font-size: 22px; 
-    padding: 5px; margin-right: 12px; border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    color: var(--text-color);
+    cursor: pointer; 
+    font-size: 22px; /* 适当增大图标以匹配视觉权重 */
+    line-height: 1;  /* 强制图标不产生额外行高 */
+    border-radius: 50%;
+    flex-shrink: 0;
+    user-select: none;
+    overflow: hidden;
+    
+    /* 初始隐藏状态 */
+    opacity: 0;
+    transform: scale(0.6);
+    width: 0;
+    height: 36px; /* 显式高度，确保 hover 圆圈是圆的 */
+    margin-right: 0;
+    pointer-events: none;
+    
+    transition: 
+        opacity 0.2s ease,
+        transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+        width 0.2s ease,
+        margin-right 0.2s ease,
+        background-color 0.2s ease;
 }
-.clear-btn:hover { opacity: 1; color: var(--primary-color); background-color: var(--hover-color); }
+
+/* 修复 Material Symbols 的偏移 */
+.clear-btn span {
+    display: block;
+    line-height: 1;
+}
+
+.clear-btn.visible {
+    opacity: 0.4;
+    transform: scale(1);
+    width: 36px; /* 显式宽度 */
+    margin-right: 10px;
+    pointer-events: auto;
+}
+
+.clear-btn.visible:hover { 
+    opacity: 1; 
+    color: var(--primary-color); 
+    background-color: var(--hover-color); 
+}
 
 .search-button {
     display: flex; align-items: center; gap: 8px;
     background-color: var(--primary-color);
     color: var(--btn-text-color); border: none;
-    padding: 12px 28px; margin: 5px;
+    height: 52px; /* 固定高度，略小于搜索框 */
+    padding: 0 28px; 
+    margin: 6px;
     font-size: 17px; font-weight: 600; cursor: pointer;
     transition: all 0.2s; border-radius: var(--search-radius);
+    flex-shrink: 0;
 }
 .search-button:hover { filter: brightness(1.1); transform: translateY(-1px); }
 .search-button:active { transform: translateY(0) scale(0.96); }
 
-/* 移动端优化 */
 @media (max-width: 768px) {
+    .search-form { height: 56px; }
     #current-engine-name, .button-text { display: none; }
-    .engine-select-wrapper { border-right: none; width: 60px; }
-    .current-engine { padding-left: 20px; }
-    .search-button { width: 48px; height: 48px; padding: 0; justify-content: center; border-radius: 50%; }
+    .engine-select-wrapper { border-right: none; width: 50px; }
+    .current-engine { padding: 0 0 0 15px; }
+    .search-button { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; }
+    .shortcut-hint { display: none; }
+    .clear-btn.visible { margin-right: 5px; }
 }
 
-/* 加载动画 */
 .search-button.is-loading .button-text,
 .search-button.is-loading span:not(.loader) { display: none; }
 .search-button.is-loading::after {

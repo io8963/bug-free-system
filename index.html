@@ -11,14 +11,12 @@
     <main class="search-container">
         <form id="search-form" class="search-form" role="search">
             
-            <!-- 搜索引擎选择器 -->
             <div class="engine-select-wrapper" id="engine-trigger" role="button" aria-haspopup="true" aria-expanded="false" aria-label="切换搜索引擎">
                 <div class="current-engine">
                     <span id="current-engine-name">Bing</span>
                     <span class="material-symbols-outlined arrow-icon">expand_more</span>
                 </div>
 
-                <!-- 下拉菜单：增加次级域名描述 -->
                 <ul id="engine-menu" class="engine-menu" role="menu">
                     <li role="menuitem" data-name="Bing" data-url="https://www.bing.com/search?q=" class="selected">
                         <div class="engine-info">
@@ -55,7 +53,10 @@
 
             <div class="shortcut-hint" aria-hidden="true">/</div>
 
-            <span id="clear-btn" class="material-symbols-outlined clear-btn" style="display: none;" role="button" aria-label="清除输入" tabindex="0">cancel</span>
+            <!-- 清除按钮：内部包裹一层 span 解决 Material 图标基线问题 -->
+            <div id="clear-btn" class="clear-btn" role="button" aria-label="清除输入" tabindex="0">
+                <span class="material-symbols-outlined">cancel</span>
+            </div>
             
             <button type="submit" class="search-button" aria-label="执行搜索">
                 <span class="button-text">搜索</span>

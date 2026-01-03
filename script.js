@@ -87,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // "/" 键快速聚焦
         if (e.key === '/' && document.activeElement !== input) {
             e.preventDefault();
             input.focus();
@@ -102,19 +101,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('click', () => toggleMenu(false));
 
-    // --- 4. 输入框逻辑 ---
+    // --- 4. 输入框清除逻辑 ---
     const toggleClearBtn = () => {
-        clearBtn.style.display = input.value.trim() ? 'flex' : 'none';
+        const hasText = input.value.length > 0;
+        clearBtn.classList.toggle('visible', hasText);
     };
     
     const clearInput = () => {
         input.value = ''; 
-        input.focus();    
         toggleClearBtn(); 
+        input.focus();    
     };
 
     input.addEventListener('input', toggleClearBtn);
     clearBtn.addEventListener('click', clearInput);
+    
+    toggleClearBtn();
 
     // --- 5. 提交搜索 ---
     form.addEventListener('submit', (e) => {
