@@ -651,9 +651,21 @@ input[type="search"]::-webkit-search-results-decoration {
     }
 }
 
-.search-button.is-loading .button-text,
-.search-button.is-loading span:not(.loader) { 
+/* 搜索按钮加载状态 */
+.search-button.is-loading .button-text {
     display: none; 
+}
+
+.search-button.is-loading span:not(.loading-icon) { 
+    display: none; 
+}
+
+.search-button.is-loading {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* 防止在加载时重复点击 */
 }
 
 .search-button.is-loading::after {
