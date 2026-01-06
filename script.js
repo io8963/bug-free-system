@@ -17,7 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
             { name: 'Bing', url: 'https://www.bing.com/search?q=', domain: 'bing.com' },
             { name: 'Google', url: 'https://www.google.com/search?q=', domain: 'google.com' },
             { name: 'Baidu', url: 'https://www.baidu.com/s?wd=', domain: 'baidu.com' }
-        ]
+        ],
+        // 新增：存储用户自定义引擎
+        customEngines: []
     };
 
     // --- 优化2: 直达功能配置 ---
@@ -43,13 +45,188 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     };
 
+// 替换 script.js 中的 add 函数部分
+    const customEngineCommands = {
+    add: (params) => {
+        if (params.length < 2) {
+            showNotification('用法: /add <名称> <URL模板> [域名]');
+            return;
+        }
+        
+        const name = params[0];
+        const urlTemplate = params[1];
+        const domain = params[2] || extractDomain(urlTemplate);
+        
+        // 验证URL格式 - 允许使用 {query} 或其他占位符
+        if (!urlTemplate.includes('{query}')) {
+            showNotification('URL模板必须包含 {query} 占位符');
+            return;
+        }
+        
+        // 尝试创建一个临时URL来验证基本格式
+        const testUrl = urlTemplate.replace(/{query}/g, 'test');
+        try {
+            new URL(testUrl);
+        } catch (e) {
+            showNotification('URL格式不正确');
+            return;
+        }
+        
+        // 检查是否已存在
+        const existingIndex = state.customEngines.findIndex(engine => engine.name === name);
+        if (existingIndex !== -1) {
+            state.customEngines[existingIndex] = { name, url: urlTemplate, domain };
+            showNotification(`搜索引擎 "${name}" 已更新`);
+        } else {
+            state.customEngines.push({ name, url: urlTemplate, domain });
+            showNotification(`已添加搜索引擎 "${name}"`);
+        }
+        
+        saveEnginesToStorage();
+        updateEngineMenu();
+    },
+    
+    // ... 其他命令保持不变
+    }
+
+    // --- 新增：从URL提取域名 ---
+    const extractDomain = (url) => {
+        try {
+            return new URL(url).hostname.replace('www.', '');
+        } catch (e) {
+            return '自定义';
+        }
+    };
+
+    // --- 新增：保存引擎到本地存储 ---
+    const saveEnginesToStorage = () => {
+        localStorage.setItem('customSearchEngines', JSON.stringify(state.customEngines));
+    };
+
+    // --- 新增：从本地存储加载引擎 ---
+    const loadEnginesFromStorage = () => {
+        const stored = localStorage.getItem('customSearchEngines');
+        if (stored) {
+            try {
+                state.customEngines = JSON.parse(stored);
+            } catch (e) {
+                console.error('加载自定义引擎失败:', e);
+            }
+        }
+    };
+
+    // --- 新增：更新引擎菜单 ---
+    const updateEngineMenu = () => {
+        // 清空现有菜单项（保留预设引擎）
+        engineMenu.innerHTML = '';
+        
+        // 添加预设引擎
+        state.searchEngines.forEach((engine, index) => {
+            const li = document.createElement('li');
+            li.setAttribute('role', 'option');
+            li.setAttribute('data-name', engine.name);
+            li.setAttribute('data-url', engine.url);
+            li.id = `engine-option-${index}`;
+            
+            if (engineNameDisplay.textContent === engine.name) {
+                li.classList.add('selected');
+                li.setAttribute('aria-selected', 'true');
+            }
+            
+            li.innerHTML = `
+                <div class="engine-info">
+                    <span class="engine-main">${engine.name}</span>
+                    <span class="engine-desc">${engine.domain}</span>
+                </div>
+            `;
+            
+            li.addEventListener('click', (e) => {
+                e.stopPropagation();
+                updateEngineState(engine.name, engine.url);
+                toggleMenu(false);
+                input.focus();
+            });
+            
+            li.addEventListener('mouseenter', () => {
+                state.activeIndex = index;
+                updateMenuHighlight(Array.from(engineMenu.querySelectorAll('li')));
+            });
+            
+            engineMenu.appendChild(li);
+        });
+        
+        // 添加自定义引擎分隔线
+        if (state.customEngines.length > 0) {
+            const separator = document.createElement('li');
+            separator.classList.add('menu-separator');
+            separator.innerHTML = '<div class="separator-line">自定义引擎</div>';
+            separator.style.padding = '10px 16px';
+            separator.style.fontSize = '12px';
+            separator.style.opacity = '0.7';
+            separator.style.textAlign = 'center';
+            separator.style.borderTop = '1px solid var(--border-color)';
+            separator.style.marginTop = '8px';
+            separator.style.cursor = 'default';
+            engineMenu.appendChild(separator);
+            
+            // 添加自定义引擎
+            state.customEngines.forEach((engine, index) => {
+                const li = document.createElement('li');
+                li.setAttribute('role', 'option');
+                li.setAttribute('data-name', engine.name);
+                li.setAttribute('data-url', engine.url);
+                li.id = `engine-option-custom-${index}`;
+                
+                if (engineNameDisplay.textContent === engine.name) {
+                    li.classList.add('selected');
+                    li.setAttribute('aria-selected', 'true');
+                }
+                
+                li.innerHTML = `
+                    <div class="engine-info">
+                        <span class="engine-main">${engine.name}</span>
+                        <span class="engine-desc">${engine.domain}</span>
+                    </div>
+                `;
+                
+                li.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    updateEngineState(engine.name, engine.url);
+                    toggleMenu(false);
+                    input.focus();
+                });
+                
+                li.addEventListener('mouseenter', () => {
+                    state.activeIndex = state.searchEngines.length + index;
+                    updateMenuHighlight(Array.from(engineMenu.querySelectorAll('li')));
+                });
+                
+                engineMenu.appendChild(li);
+            });
+        }
+    };
+
     // --- 优化4: 初始化引擎状态 ---
     const initializeEngine = () => {
+        loadEnginesFromStorage();
+        updateEngineMenu();
+        
         const savedEngineName = localStorage.getItem('selectedEngineName');
         const savedEngineUrl = localStorage.getItem('selectedEngineUrl');
 
         if (savedEngineName && savedEngineUrl) {
-            updateEngineState(savedEngineName, savedEngineUrl);
+            // 验证保存的引擎是否存在
+            const allEngines = [...state.searchEngines, ...state.customEngines];
+            const foundEngine = allEngines.find(engine => 
+                engine.name === savedEngineName && engine.url === savedEngineUrl);
+            
+            if (foundEngine) {
+                updateEngineState(savedEngineName, savedEngineUrl);
+            } else {
+                // 如果保存的引擎不存在，使用默认引擎
+                const defaultEngine = state.searchEngines[0];
+                updateEngineState(defaultEngine.name, defaultEngine.url);
+            }
         } else {
             // 设置默认引擎
             const defaultEngine = state.searchEngines[0];
@@ -64,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.placeholder = `使用 ${name} 搜索...`;
         
         // 更新菜单项选择状态
+        const menuItems = engineMenu.querySelectorAll('li');
         menuItems.forEach(item => {
             const isSelected = item.getAttribute('data-name') === name;
             item.classList.toggle('selected', isSelected);
@@ -73,6 +251,45 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('selectedEngineName', name);
         localStorage.setItem('selectedEngineUrl', url);
     }
+
+    // --- 新增：显示通知 ---
+    const showNotification = (message) => {
+        // 创建通知元素
+        let notification = document.getElementById('notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--surface-color);
+                color: var(--text-color);
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1000;
+                opacity: 0;
+                transform: translateY(-20px);
+                transition: all 0.3s ease;
+                border: 1px solid var(--border-color);
+                font-size: 14px;
+                max-width: 300px;
+                word-break: break-word;
+            `;
+            document.body.appendChild(notification);
+        }
+        
+        notification.textContent = message;
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateY(0)';
+        
+        // 自动隐藏
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateY(-20px)';
+        }, 3000);
+    };
 
     // --- 优化6: 菜单开关逻辑 ---
     function toggleMenu(show) {
@@ -90,6 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
             engineTrigger.setAttribute('aria-expanded', 'false');
             
             // 移除键盘导航高亮
+            const menuItems = engineMenu.querySelectorAll('li');
             menuItems.forEach(item => item.classList.remove('key-active'));
         }
     }
@@ -100,38 +318,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 优化7: 菜单项事件处理 ---
-    menuItems.forEach((item, index) => {
-        // 添加 ARIA 属性
-        item.setAttribute('role', 'option');
-        item.id = `engine-option-${index}`;
-        
-        item.addEventListener('click', (e) => {
-            e.stopPropagation(); 
-            const name = item.getAttribute('data-name');
-            const url = item.getAttribute('data-url');
-            updateEngineState(name, url);
-            toggleMenu(false); 
-            input.focus();
-        });
-        
-        // 鼠标悬停时更新键盘导航索引
-        item.addEventListener('mouseenter', () => {
-            state.activeIndex = index;
-            updateMenuHighlight(Array.from(menuItems));
-        });
-        
-        // 优化触摸设备体验
-        item.addEventListener('touchstart', (e) => {
-            state.activeIndex = index;
-            updateMenuHighlight(Array.from(menuItems));
-        });
-    });
+    // 菜单项事件处理已移到 updateEngineMenu 中
 
     // --- 优化8: 键盘导航 ---
     document.addEventListener('keydown', (e) => {
         // 字母快速选择
         if (engineMenu.classList.contains('active') && e.key.length === 1 && e.key.match(/[a-z]/i)) {
             const key = e.key.toLowerCase();
+            const menuItems = engineMenu.querySelectorAll('li[data-name]');
             const matchingItem = Array.from(menuItems).find(item => 
                 item.getAttribute('data-name').toLowerCase().startsWith(key)
             );
@@ -142,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (engineMenu.classList.contains('active')) {
-            const items = Array.from(menuItems);
+            const items = Array.from(engineMenu.querySelectorAll('li[data-name]'));
             if (e.key === 'ArrowDown') {
                 e.preventDefault(); 
                 state.activeIndex = (state.activeIndex + 1) % items.length;
@@ -164,7 +358,35 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             input.focus();
         }
+        
+        // 新增：处理自定义引擎命令
+        if (e.key === 'Enter' && input.value.startsWith('/')) {
+            handleCustomEngineCommand(input.value);
+        }
     });
+
+    // --- 新增：处理自定义引擎命令 ---
+    const handleCustomEngineCommand = (command) => {
+        const parts = command.trim().split(/\s+/);
+        const cmd = parts[0].substring(1).toLowerCase(); // 去掉开头的 '/'
+        const params = parts.slice(1);
+        
+        if (customEngineCommands[cmd]) {
+            customEngineCommands[cmd](params);
+            input.value = '';
+            debouncedToggleClearBtn();
+        } else if (cmd === 'help') {
+            showNotification(
+                '自定义引擎命令:\n' +
+                '/add <名称> <URL> - 添加搜索引擎 (URL中使用{query}作为查询占位符)\n' +
+                '/remove <名称> - 删除搜索引擎\n' +
+                '/list - 列出所有自定义引擎\n' +
+                '/help - 显示帮助'
+            );
+        } else {
+            showNotification(`未知命令: /${cmd}\n输入 /help 查看可用命令`);
+        }
+    };
 
     function updateMenuHighlight(items) {
         items.forEach((item, index) => {
@@ -189,6 +411,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 优化10: 直达模式检测 ---
     const checkDirectMode = (val) => {
         const query = val.trim();
+        
+        // 如果是命令模式，不启用直达模式
+        if (query.startsWith('/')) {
+            form.classList.remove('direct-mode');
+            return;
+        }
+        
         const parts = query.split(/\s+/);
         const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
         
@@ -230,45 +459,66 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeEngine();
     debouncedToggleClearBtn();
 
-    // --- 优化11: 提交搜索逻辑 ---
-    form.addEventListener('submit', (e) => {
-        e.preventDefault(); 
-        const query = input.value.trim();
-        if (!query) return;
+// ... 之前的代码保持不变 ...
 
-        const searchBtn = form.querySelector('.search-button');
-        searchBtn.classList.add('is-loading');
+// --- 优化11: 提交搜索逻辑 ---
+// 替换 script.js 中的表单提交处理部分
+form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const query = input.value.trim();
+    if (!query) return;
 
-        let targetUrl = "";
+    // 如果是命令，处理命令而不是搜索
+    if (query.startsWith('/')) {
+        handleCustomEngineCommand(query);
+        return;
+    }
 
-        const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-        if (urlPattern.test(query)) {
-            targetUrl = query.startsWith('http') ? query : `https://${query}`;
+    const searchBtn = form.querySelector('.search-button');
+    searchBtn.classList.add('is-loading');
+
+    let targetUrl = "";
+
+    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+    if (urlPattern.test(query)) {
+        targetUrl = query.startsWith('http') ? query : `https://${query}`;
+    } 
+    else {
+        const parts = query.split(/\s+/);
+        const prefix = parts[0].toLowerCase();
+        if (directShortcuts[prefix] && parts.length > 1) {
+            const keyword = query.substring(parts[0].length).trim();
+            targetUrl = directShortcuts[prefix].url + encodeURIComponent(keyword);
         } 
         else {
-            const parts = query.split(/\s+/);
-            const prefix = parts[0].toLowerCase();
-            if (directShortcuts[prefix] && parts.length > 1) {
-                const keyword = query.substring(parts[0].length).trim();
-                targetUrl = directShortcuts[prefix].url + encodeURIComponent(keyword);
-            } 
-            else {
+            // 检查当前是否为自定义引擎，并且URL包含{query}占位符
+            const currentEngine = [...state.searchEngines, ...state.customEngines]
+                .find(engine => engine.name === engineNameDisplay.textContent);
+            
+            if (currentEngine && currentEngine.url.includes('{query}')) {
+                targetUrl = currentEngine.url.replace(/{query}/g, encodeURIComponent(query));
+            } else {
+                // 使用当前保存的搜索URL（对于预设引擎）
                 targetUrl = state.currentSearchUrl + encodeURIComponent(query);
             }
         }
+    }
 
-        // 模拟网络延迟
-        setTimeout(() => {
-            try {
-                window.open(targetUrl, '_blank');
-            } catch (error) {
-                console.error('无法打开搜索结果:', error);
-                // 可以添加用户友好的错误提示
-            } finally {
-                searchBtn.classList.remove('is-loading');
-            }
-        }, 300); 
-    });
+    // 模拟网络延迟
+    setTimeout(() => {
+        try {
+            window.open(targetUrl, '_blank');
+        } catch (error) {
+            console.error('无法打开搜索结果:', error);
+            showNotification('无法打开搜索结果，请检查URL格式');
+        } finally {
+            searchBtn.classList.remove('is-loading');
+        }
+    }, 300); 
+});
+
+// ... 之后的代码保持不变 ...
     
     // --- 深色模式切换支持 ---
     const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');

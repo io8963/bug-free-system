@@ -623,3 +623,31 @@ input[type="search"]::-webkit-search-results-decoration {
         transform: rotate(360deg); 
     } 
 }
+
+/* 新增：通知样式 */
+#notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--surface-color);
+    color: var(--text-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    font-size: 14px;
+    max-width: 300px;
+    word-break: break-word;
+}
+
+/* 深色模式下的通知样式 */
+@media (prefers-color-scheme: dark) {
+    #notification {
+        background: rgba(30, 35, 45, 0.95);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+}
