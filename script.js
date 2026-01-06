@@ -252,44 +252,49 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('selectedEngineUrl', url);
     }
 
-    // --- 新增：显示通知 ---
-    const showNotification = (message) => {
-        // 创建通知元素
-        let notification = document.getElementById('notification');
-        if (!notification) {
-            notification = document.createElement('div');
-            notification.id = 'notification';
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: var(--surface-color);
-                color: var(--text-color);
-                padding: 12px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
-                opacity: 0;
-                transform: translateY(-20px);
-                transition: all 0.3s ease;
-                border: 1px solid var(--border-color);
-                font-size: 14px;
-                max-width: 300px;
-                word-break: break-word;
-            `;
-            document.body.appendChild(notification);
-        }
-        
-        notification.textContent = message;
-        notification.style.opacity = '1';
-        notification.style.transform = 'translateY(0)';
-        
-        // 自动隐藏
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateY(-20px)';
-        }, 3000);
-    };
+// 替换原有的 showNotification 函数
+const showNotification = (content) => {
+    let notification = document.getElementById('notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--surface-color);
+            color: var(--text-color);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+            max-width: 400px;
+            word-break: break-word;
+        `;
+        document.body.appendChild(notification);
+    }
+    
+    // 判断内容类型，如果是 HTML 则使用 innerHTML，否则使用 textContent
+    if (typeof content === 'string' && content.includes('<')) {
+        notification.innerHTML = content;
+    } else {
+        notification.textContent = content;
+    }
+    
+    notification.style.opacity = '1';
+    notification.style.transform = 'translateY(0)';
+    
+    // 自动隐藏
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-20px)';
+    }, 5000); // 增加显示时间到5秒，因为内容更复杂
+};
 
     // --- 优化6: 菜单开关逻辑 ---
     function toggleMenu(show) {
@@ -366,27 +371,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 新增：处理自定义引擎命令 ---
-    const handleCustomEngineCommand = (command) => {
-        const parts = command.trim().split(/\s+/);
-        const cmd = parts[0].substring(1).toLowerCase(); // 去掉开头的 '/'
-        const params = parts.slice(1);
-        
-        if (customEngineCommands[cmd]) {
-            customEngineCommands[cmd](params);
-            input.value = '';
-            debouncedToggleClearBtn();
-        } else if (cmd === 'help') {
-            showNotification(
-                '自定义引擎命令:\n' +
-                '/add <名称> <URL> - 添加搜索引擎 (URL中使用{query}作为查询占位符)\n' +
-                '/remove <名称> - 删除搜索引擎\n' +
-                '/list - 列出所有自定义引擎\n' +
-                '/help - 显示帮助'
-            );
-        } else {
-            showNotification(`未知命令: /${cmd}\n输入 /help 查看可用命令`);
-        }
-    };
+// 替换 handleCustomEngineCommand 函数中的 help 部分
+const handleCustomEngineCommand = (command) => {
+    const parts = command.trim().split(/\s+/);
+    const cmd = parts[0].substring(1).toLowerCase(); // 去掉开头的 '/'
+    const params = parts.slice(1);
+    
+    if (customEngineCommands[cmd]) {
+        customEngineCommands[cmd](params);
+        input.value = '';
+        debouncedToggleClearBtn();
+    } else if (cmd === 'help') {
+        const helpContent = `
+            <div style="line-height: 1.6;">
+                <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">自定义搜索引擎帮助</h3>
+                <div style="margin-bottom: 12px;">
+                    <div style="margin-bottom: 8px; display: flex;">
+                        <code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; margin-right: 10px; flex-shrink: 0;">/add</code>
+                        <span>添加搜索引擎: <code>/add &lt;名称&gt; &lt;URL模板&gt; [域名]</code></span>
+                    </div>
+                    <div style="margin-bottom: 8px; display: flex;">
+                        <code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; margin-right: 10px; flex-shrink: 0;">/remove</code>
+                        <span>删除搜索引擎: <code>/remove &lt;名称&gt;</code></span>
+                    </div>
+                    <div style="margin-bottom: 8px; display: flex;">
+                        <code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; margin-right: 10px; flex-shrink: 0;">/list</code>
+                        <span>列出所有自定义引擎</span>
+                    </div>
+                    <div style="margin-bottom: 8px; display: flex;">
+                        <code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; margin-right: 10px; flex-shrink: 0;">/help</code>
+                        <span>显示此帮助信息</span>
+                    </div>
+                </div>
+                <div style="font-size: 13px; opacity: 0.8;">
+                    <p style="margin: 8px 0;">提示：URL模板中请使用 <code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px;">{query}</code> 作为查询占位符</p>
+                    <p style="margin: 8px 0;">例如: <code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; word-break: break-all;">/add GitHub https://github.com/search?q={query}</code></p>
+                </div>
+            </div>
+        `;
+        showNotification(helpContent);
+    } else {
+        showNotification(`未知命令: /${cmd}\n输入 /help 查看可用命令`);
+    }
+};
 
     function updateMenuHighlight(items) {
         items.forEach((item, index) => {
